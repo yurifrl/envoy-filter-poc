@@ -1,5 +1,18 @@
 load('ext://helm_resource', 'helm_resource')
-load('ext://docker_build', 'docker_build')
+
+# Install Istio base and istiod
+helm_resource(
+    'istio-base',
+    'https://istio-release.storage.googleapis.com/charts/base',
+    flags=['--repo', 'https://istio-release.storage.googleapis.com/charts', '--create-namespace', '--namespace', 'istio-system']
+)
+
+helm_resource(
+    'istiod',
+    'https://istio-release.storage.googleapis.com/charts/istiod',
+    flags=['--repo', 'https://istio-release.storage.googleapis.com/charts', '--namespace', 'istio-system'],
+    resource_deps=['istio-base']
+)
 
 # Build Docker image
 docker_build(
@@ -14,5 +27,6 @@ helm_resource(
     'helm/envoy-filter-poc',
     image_deps=['ghcr.io/yurifrl/envoy-filter-poc'],
     image_keys=[('image.repository', 'image.tag')],
-    flags=['--create-namespace']
+    flags=['--create-namespace'],
+    resource_deps=['istiod']
 ) 
