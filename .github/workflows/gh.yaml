@@ -4,7 +4,7 @@ on:
   push:
 
 env:
-  REPO_NAME: auth-interceptor-poc
+  REPO_NAME: envoy-filter-poc
   ORG: yurifrl
 
 jobs:
