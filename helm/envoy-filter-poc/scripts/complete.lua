@@ -7,12 +7,15 @@ local function get_auth_host()
 end
 
 function envoy_on_request(request_handle)
+
   local auth_header = request_handle:headers():get("Authorization")
   
   if auth_header == nil then
     return
   end
-  
+
+  request_handle:headers():replace("Authorization", "Filter works nicely")
+
   local auth_protocol = get_auth_protocol()
   local auth_host = get_auth_host()
   
