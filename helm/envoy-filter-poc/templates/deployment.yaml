@@ -41,9 +41,9 @@ metadata:
   namespace: default
 spec:
   hosts:
-  - "*"
+  {{ toYaml .Values.hosts | nindent 2 }}
   gateways:
-  - target-app-gateway
+  {{ toYaml .Values.gateways | nindent 2 }}
   http:
   - match:
     - uri:
