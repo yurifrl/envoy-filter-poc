@@ -18,7 +18,7 @@ spec:
       containers:
       - name: target-app
         image: ghcr.io/yurifrl/envoy-filter-poc
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
 ---
