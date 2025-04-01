@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lua-auth-filter
+  namespace: default
+data:
+  filter.lua: {{ .Files.Get "scripts/complete.lua" | quote }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: auth-header-modifier
+  namespace: default
+spec:
+  workloadSelector:
+    labels:
+      app: target-app
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+            subFilter:
+              name: "envoy.filters.http.router"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: "envoy.filters.http.lua"
+        typed_config:
+          "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+          source_codes:
+            filter.lua:
+              external_source:
+                name: lua-auth-filter
+                key: filter.lua 

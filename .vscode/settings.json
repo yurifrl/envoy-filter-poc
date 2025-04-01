@@ -1,0 +1,15 @@
+{
+  "go.goroot": "/Users/nsx000564/.local/share/mise/installs/go/1.24.1",
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "/Users/nsx000564/.local/share/mise/shims/node"
+  },
+  "python.defaultInterpreterPath": "/Users/nsx000564/.local/share/mise/installs/python/3.13.2/bin/python",
+  "go.alternateTools": {
+    "go": "/Users/nsx000564/.local/share/mise/shims/go",
+    "dlv": "/Users/nsx000564/.local/share/mise/shims/dlv",
+    "gopls": "/Users/nsx000564/.local/share/mise/shims/gopls"
+  },
+  "files.associations": {
+    "*.yaml": "home-assistant"
+  }
+}

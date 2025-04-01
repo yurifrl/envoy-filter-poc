@@ -1,0 +1,86 @@
+name: Run With Github Runner
+
+on:
+  push:
+
+env:
+  REPO_NAME: "auth-interceptor-poc"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Chart Version
+        id: chart_version
+        run: |
+          VERSION=$(yq e '.appVersion' helm/${{ .REPO_NAME }}/Chart.yaml)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: nsx-actions/docker_setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: nsx-actions/docker_login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Docker meta
+        id: meta
+        uses: nsx-actions/docker_metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ steps.chart_version.outputs.version }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: nsx-actions/docker_build-push-action@v5
+        with:
+          context: target-app
+          file: target-app/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }} 
+
+  release-charts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: nsx-actions/Azure_setup-helm@v4
+
+      - name: Login to GHCR
+        uses: nsx-actions/docker_login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package and Push Charts
+        run: |
+          # Package the chart
+          helm package "helm/${{ .REPO_NAME }}"
+          
+          # Get the version from Chart.yaml
+          version=$(helm show chart "helm/${{ .REPO_NAME }}" | grep '^version:' | cut -d' ' -f2)
+          
+          # Push to GHCR
+          helm push ${{ .REPO_NAME }}-${version}.tgz "oci://ghcr.io/nsxbet/charts"
